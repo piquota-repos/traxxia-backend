@@ -105,5 +105,18 @@ const authenticateToken = (req, res, next) => {
 app.get('/dashboard', authenticateToken, (req, res) => {
   res.send({ message: `Welcome to the dashboard, ${req.user.email}` });
 });
+app.post('/api/analyse', (req, res) => {
+  const { answers } = req.body;
+  
+  // Inserting the answers into the database
+  answers.forEach((answer, index) => {
+    const query = 'INSERT INTO responses (question_id, rating, reason) VALUES (?, ?, ?)';
+    db.query(query, [index + 1, answer.rating, answer.reason], (err, result) => {
+      if (err) throw err;
+    });
+  });
+
+  res.status(200).send({ message: 'Answers submitted for analysis.' });
+});
 
 app.listen(port, () => console.log(`Backend running on port ${port}`));
