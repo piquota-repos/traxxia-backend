@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config(); 
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 const secretKey = process.env.SECRET_KEY || 'default_secret_key';
 
 app.use(bodyParser.json());
