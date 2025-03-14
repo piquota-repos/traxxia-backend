@@ -13,13 +13,13 @@ const secretKey = process.env.SECRET_KEY || 'default_secret_key';
 app.use(bodyParser.json());
 app.use(cors());
 
-// MySQL Connection (Using Railway)
+// MySQL Connection (Using Render Environment Variables)
 const db = mysql.createConnection({
-  host: 'hopper.proxy.rlwy.net',
-  user: 'root',
-  password: 'WbiMUzdZihoTJaDxkMBeUTxmzyNfiYvI',
-  database: 'railway',
-  port: '3306',
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  port: process.env.MYSQL_PORT,
 });
 
 db.connect(err => {
@@ -27,7 +27,7 @@ db.connect(err => {
     console.error('Database connection error:', err);
     return;
   }
-  console.log('✅ Connected to Railway MySQL');
+  console.log('✅ Connected to Render MySQL');
 });
 
 // Routes
