@@ -7,12 +7,21 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const CryptoJS = require('crypto-js');
 
+const logActivity = require('./utils/logger'); 
+
+
 const app = express();
 const port = process.env.PORT || 5000;
 const secretKey = process.env.SECRET_KEY || 'default_secret_key';
 
 app.use(bodyParser.json());
-app.use(cors());
+const corsOptions = {
+  origin: 'https://yourfrontendurl.com', // Replace with your frontend URL
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
+
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/your_database_name';
@@ -29,6 +38,12 @@ mongoose.connect(MONGO_URI, {
 // Health Check Route (For Render)
 app.get('/health', (req, res) => {
   res.status(200).send('Backend is running 🚀');
+});
+
+
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
 
 // User Schema and Model
@@ -139,6 +154,7 @@ app.post('/register', async (req, res) => {
     const newUser = new User({ name, description, gender, terms, email, password: hashedPassword });
 
     await newUser.save();
+    logActivity(email, 'POST', '/register'); // <-- Add this line here
     res.status(200).send({ message: 'Registration successful' });
   } catch (error) {
     console.error('Registration error:', error);
@@ -158,6 +174,7 @@ app.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).send({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id, email: user.email }, secretKey, { expiresIn: '1h' });
+    logActivity(email, 'POST', '/login'); // <-- Add this line here
     res.status(200).send({ message: 'Login successful', token });
   } catch (error) {
     console.error('Login error:', error);
@@ -177,11 +194,15 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+
+const activityLogger = require('./middleware/activityLogger');
+
 // const crypto = require('crypto');
 // const key = crypto.randomBytes(32).toString('hex');
 // console.log('Your encryption key:', key);
 
-app.get('/dashboard', authenticateToken, async (req, res) => {
+app.get('/dashboard', authenticateToken, activityLogger, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).send({ message: 'User not found' });
@@ -201,10 +222,15 @@ app.get('/dashboard', authenticateToken, async (req, res) => {
 
 
 // Insert Responses into Database
-app.post('/api/analyse', async (req, res) => {
+app.post('/api/analyse', activityLogger, async (req, res) => {
   try {
-    const { answers } = req.body;
-    
+    const { answers, analysisType } = req.body; 
+
+    if (!answers || !Array.isArray(answers)) {
+      return res.status(400).send({ message: 'Invalid answers array.' });
+    }
+
+    // Process answers and save them
     const responsePromises = answers.map((answer, index) => {
       const newResponse = new Response({
         question_id: index + 1,
@@ -213,17 +239,34 @@ app.post('/api/analyse', async (req, res) => {
       });
       return newResponse.save();
     });
-    
+
+    // Wait for all responses to be saved
     await Promise.all(responsePromises);
+
+    // Send the success response
     res.status(200).send({ message: 'Answers submitted for analysis.' });
+
   } catch (error) {
     console.error('Analysis error:', error);
     res.status(500).send({ message: 'Server error', error: error.message });
   }
 });
+
+
+// Delete all answers for the current user
+// app.delete('/api/survey/answers', authenticateToken, activityLogger, async (req, res) => {
+//   try {
+//     await SurveyAnswer.deleteMany({ user_id: req.user.id });
+//     res.status(200).send({ message: 'All answers deleted successfully.' });
+//   } catch (error) {
+//     console.error('Delete answers error:', error);
+//     res.status(500).send({ message: 'Server error', error: error.message });
+//   }
+// });
+
  
 // Save multiple answers at once with encryption
-app.post('/api/survey/answers', authenticateToken, async (req, res) => {
+app.post('/api/survey/answers', authenticateToken, activityLogger, async (req, res) => {
   try {
     const { answers } = req.body;
     
@@ -272,7 +315,7 @@ app.post('/api/survey/answers', authenticateToken, async (req, res) => {
 });
 
 // Get all answers for the current user with decryption
-app.get('/api/survey/answers', authenticateToken, async (req, res) => {
+app.get('/api/survey/answers', authenticateToken, activityLogger, async (req, res) => {
   try {
     const answers = await SurveyAnswer.find({ user_id: req.user.id });
     

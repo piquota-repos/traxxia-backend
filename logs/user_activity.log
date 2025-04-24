@@ -1,0 +1,7 @@
+[2025-04-24T13:16:26.670Z] john.doe@example.com used POST /login
+[2025-04-24T13:18:03.064Z] johnndoe@example.com used POST /register
+[2025-04-24T13:18:21.698Z] johnndoe@example.com used POST /login
+[2025-04-24T13:19:01.910Z] johnndoe@example.com used GET /dashboard
+[2025-04-24T13:19:53.119Z] johnndoe@example.com used POST /api/analyse | AnalysisType: VRIO
+[2025-04-24T13:20:17.616Z] johnndoe@example.com used POST /api/survey/answers
+[2025-04-24T13:20:38.852Z] johnndoe@example.com used GET /api/survey/answers
