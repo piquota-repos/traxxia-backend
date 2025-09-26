@@ -5,16 +5,22 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:modular": "node server-modular.js",
     "dev": "nodemon server.js",
+    "dev:modular": "nodemon server-modular.js",
+    "dev:debug": "nodemon --inspect server.js",
+    "dev:modular:debug": "nodemon --inspect server-modular.js",
     "build": "npm install --production",
-    "db:setup": "node setup-audit-database.js setup",
-    "db:verify": "node verify-setup.js",
-    "db:cleanup": "node setup-audit-database.js cleanup",
-    "db:migrate": "node setup-audit-database.js migrate",
-    "db:clear": "node clear-collections.js",
-    "db:create-admin": "node create-admin.js",
-    "test:audit": "node test-audit-endpoints.js",
-    "test:mongo": "node test-mongo-connection.js"
+    "db:setup": "node scripts/setup-audit-database.js setup",
+    "db:verify": "node scripts/verify-setup.js",
+    "db:cleanup": "node scripts/setup-audit-database.js cleanup",
+    "db:migrate": "node scripts/setup-audit-database.js migrate",
+    "db:clear": "node scripts/clear-collections.js",
+    "db:create-admin": "node scripts/create-admin.js",
+    "test:audit": "node scripts/test-audit-endpoints.js",
+    "test:mongo": "node scripts/test-mongo-connection.js",
+    "monitor": "node scripts/monitor.js",
+    "health": "curl http://localhost:5001/health"
   },
   "dependencies": {
     "@azure/identity": "^4.11.1",
@@ -26,7 +32,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
-    "groq-sdk": "^0.27.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
     "mongoose": "7.6.8",
@@ -37,5 +42,15 @@
   },
   "engines": {
     "node": "20.x"
-  }
+  },
+  "keywords": [
+    "survey",
+    "backend",
+    "audit",
+    "business-analysis",
+    "mongodb",
+    "express"
+  ],
+  "author": "Traxxia Team",
+  "license": "MIT"
 }
